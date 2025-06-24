@@ -21,18 +21,19 @@ final class URLRequestFactory: IURLRequestFactory {
 
     func makeUrlRequest(from request: IRequest) -> URLRequest? {
         var urlComponents = URLComponents()
-        urlComponents.scheme = request.scheme()
-        urlComponents.host = request.host()
-        urlComponents.path = request.path()
-        urlComponents.queryItems = queryItems(from: request.queryParams())
+        urlComponents.scheme = request.scheme
+        urlComponents.host = request.host
+        urlComponents.path = request.path
+        urlComponents.queryItems = queryItems(from: request.queryParams)
 
         guard let url = urlComponents.url else { return nil }
 
-        var headers = request.headerFields()
+        var headers = request.headerFields
         headers["X-Api-Key"] = apiKeyProvider.getApiKey()
 
         var urlRequest = URLRequest(url: url)
         urlRequest.allHTTPHeaderFields = headers
+        urlRequest.httpMethod = request.type.rawValue.uppercased()
 
         return urlRequest
     }

@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol ITopHeadlinesService {
+protocol ITopHeadlinesService: AnyObject {
     func loadNew(completion: @escaping (Result<String, Error>) -> Void)
 }
 

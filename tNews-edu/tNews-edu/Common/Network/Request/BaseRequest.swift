@@ -7,31 +7,31 @@
 
 class BaseRequest: IRequest {
 
-    func type() -> RequestType {
+    var type: RequestType {
         .get
     }
 
-    final func scheme() -> String {
+    final var scheme: String {
         "https"
     }
     
-    final func host() -> String {
+    final var host: String {
         "newsapi.org"
     }
     
-    func service() -> String {
+    var service: String {
         "everything"
     }
 
-    final func path() -> String {
-        "/v2/\(service())"
+    final var path: String {
+        "/v2/\(service)"
     }
 
-    func headerFields() -> [String: String] {
+    var headerFields: [String: String] {
         [String: String]()
     }
 
-    func queryParams() -> [AnyHashable: Any] {
+    var queryParams: [AnyHashable: Any] {
         [AnyHashable: Any]()
     }
 }

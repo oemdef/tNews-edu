@@ -60,6 +60,8 @@ final class MainViewController: UIViewController, IMainView {
     // MARK: - Private Helpers
     
     private func setup() {
+        title = "tNews"
+        navigationController?.navigationBar.prefersLargeTitles = true
         view.backgroundColor = .systemBackground
         
         setupHierarchy()
@@ -72,10 +74,10 @@ final class MainViewController: UIViewController, IMainView {
     
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            textView.topAnchor.constraint(equalTo: super.view.safeAreaLayoutGuide.topAnchor),
+            textView.topAnchor.constraint(equalTo: super.view.topAnchor),
             textView.leadingAnchor.constraint(equalTo: super.view.safeAreaLayoutGuide.leadingAnchor),
             textView.trailingAnchor.constraint(equalTo: super.view.safeAreaLayoutGuide.trailingAnchor),
-            textView.bottomAnchor.constraint(equalTo: super.view.safeAreaLayoutGuide.bottomAnchor)
+            textView.bottomAnchor.constraint(equalTo: super.view.bottomAnchor)
         ])
     }
 }

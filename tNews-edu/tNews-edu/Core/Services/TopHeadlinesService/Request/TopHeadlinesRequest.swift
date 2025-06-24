@@ -15,11 +15,11 @@ final class TopHeadlinesRequest: BaseRequest {
         self.country = country
     }
 
-    override func queryParams() -> [AnyHashable : Any] {
+    override var queryParams: [AnyHashable : Any] {
         ["country": country]
     }
 
-    override func service() -> String {
+    override var service: String {
         "top-headlines"
     }
 }

@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol IEverythingService {
+protocol IEverythingService: AnyObject {
     func loadNew(completion: @escaping (Result<String, Error>) -> Void)
 }
 
