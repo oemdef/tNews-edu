@@ -17,17 +17,20 @@ final class MainAssembly: IMainAssembly {
     private let everythingService: IEverythingService
     private let topHeadlinesService: ITopHeadlinesService
     private let apiKeyProvider: IAPIKeyProvider
+    private let viewModelFactory: IMainViewModelFactory
 
     init(
         alertFactory: IAlertFactory,
         everythingService: IEverythingService,
         topHeadlinesService: ITopHeadlinesService,
-        apiKeyProvider: IAPIKeyProvider
+        apiKeyProvider: IAPIKeyProvider,
+        viewModelFactory: IMainViewModelFactory
     ) {
         self.alertFactory = alertFactory
         self.everythingService = everythingService
         self.topHeadlinesService = topHeadlinesService
         self.apiKeyProvider = apiKeyProvider
+        self.viewModelFactory = viewModelFactory
     }
 
     func assemble() -> UIViewController {
@@ -37,7 +40,8 @@ final class MainAssembly: IMainAssembly {
             router: router,
             everythingService: everythingService,
             topHeadlinesService: topHeadlinesService,
-            apiKeyProvider: apiKeyProvider
+            apiKeyProvider: apiKeyProvider,
+            viewModelFactory: viewModelFactory
         )
         let viewController = MainViewController(presenter: presenter)
 

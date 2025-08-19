@@ -8,7 +8,7 @@
 import Foundation
 
 protocol IRequestProcessor: AnyObject {
-    func load(_ request: IRequest, completion: @escaping (Result<String, Error>) -> Void)
+    func load<Model: Codable>(_ request: IRequest, completion: @escaping (Result<Model, Error>) -> Void)
 }
 
 final class RequestProcessor: IRequestProcessor {
@@ -19,7 +19,7 @@ final class RequestProcessor: IRequestProcessor {
         self.urlRequestFactory = urlRequestFactory
     }
 
-    func load(_ request: IRequest, completion: @escaping (Result<String, any Error>) -> Void) {
+    func load<Model: Decodable>(_ request: IRequest, completion: @escaping (Result<Model, any Error>) -> Void) {
         guard let urlRequest = urlRequestFactory.makeUrlRequest(from: request) else {
             completion(.failure(NetworkError.invalidUrl))
             return
@@ -35,13 +35,15 @@ final class RequestProcessor: IRequestProcessor {
                 completion(.failure(NetworkError.noData))
                 return
             }
-
-            guard let string = String(data: data, encoding: .utf8) else {
-                completion(.failure(NetworkError.failedToParse))
+            
+            do {
+                let model = try JSONDecoder().decode(Model.self, from: data)
+                completion(.success(model))
+                return
+            } catch {
+                completion(.failure(error))
                 return
             }
-
-            completion(.success(string))
         }.resume()
     }
 }

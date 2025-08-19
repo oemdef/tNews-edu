@@ -9,6 +9,7 @@ import UIKit
 
 enum AlertConfiguration {
     case enterApiKeyAlert(action: ((String) -> Void)?)
+    case generic(title: String, message: String?)
 }
 
 protocol IAlertFactory: AnyObject {
@@ -21,6 +22,8 @@ final class AlertFactory: IAlertFactory {
         switch configuration {
         case .enterApiKeyAlert(let action):
             return makeApiKeyAlert(with: action)
+        case .generic(let title, let message):
+            return makeGenericAlert(title: title, message: message)
         }
     }
 
@@ -43,6 +46,19 @@ final class AlertFactory: IAlertFactory {
         }
 
         alertController.addAction(submitAction)
+
+        return alertController
+    }
+
+    private func makeGenericAlert(title: String, message: String?) -> UIAlertController {
+        let alertController = UIAlertController(
+            title: title,
+            message: message,
+            preferredStyle: .alert
+        )
+
+        let okAction = UIAlertAction(title: "OK", style: .default)
+        alertController.addAction(okAction)
 
         return alertController
     }

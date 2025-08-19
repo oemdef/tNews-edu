@@ -7,25 +7,29 @@
 
 import UIKit
 
-protocol IMainView: AnyObject {
-    func set(text: String)
+private extension CGFloat {
+    static let itemEstimatedHeight: CGFloat = 138
 }
 
+protocol IMainView: AnyObject {
+    func set(items: [MainItem], animated: Bool)
+}
+
+private typealias DataSource = UICollectionViewDiffableDataSource<MainSection, MainItem>
+private typealias Snapshot = NSDiffableDataSourceSnapshot<MainSection, MainItem>
+
 final class MainViewController: UIViewController, IMainView {
-    
+
     // MARK: - Dependencies
     
     private let presenter: IMainPresenter
-    
-    // MARK: - UI
-    
-    private let textView: UITextView = {
-        let view = UITextView()
-        view.text = "Hello, World!"
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
+
+    // MARK: - Private properties
+
+    private let collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeLayout())
+    private lazy var dataSource = makeDataSource()
+    private let cellRegistrar = MainCellRegistrar()
+
     // MARK: - Init
     
     init(presenter: IMainPresenter) {
@@ -52,32 +56,71 @@ final class MainViewController: UIViewController, IMainView {
     }
     
     // MARK: - IMainView
-    
-    func set(text: String) {
-        textView.text = text
+
+    func set(items: [MainItem], animated: Bool) {
+        var snapshot = Snapshot()
+        snapshot.appendSections([.main])
+        snapshot.appendItems(items, toSection: .main)
+        dataSource.apply(snapshot, animatingDifferences: animated)
     }
-    
+
     // MARK: - Private Helpers
     
     private func setup() {
+        view.backgroundColor = .systemBackground
+
         title = "tNews"
         navigationController?.navigationBar.prefersLargeTitles = true
-        view.backgroundColor = .systemBackground
-        
+
+        let reloadBarAction = UIAction { [weak self] _ in
+            self?.presenter.viewDidAppear()
+        }
+        let reloadBarButton = UIBarButtonItem(systemItem: .refresh, primaryAction: reloadBarAction)
+        navigationItem.setRightBarButton(reloadBarButton, animated: false)
+
         setupHierarchy()
         setupConstraints()
+        setupCollectionView()
     }
     
     private func setupHierarchy() {
-        view.addSubview(textView)
+        view.addSubview(collectionView)
     }
     
     private func setupConstraints() {
-        NSLayoutConstraint.activate([
-            textView.topAnchor.constraint(equalTo: super.view.topAnchor),
-            textView.leadingAnchor.constraint(equalTo: super.view.safeAreaLayoutGuide.leadingAnchor),
-            textView.trailingAnchor.constraint(equalTo: super.view.safeAreaLayoutGuide.trailingAnchor),
-            textView.bottomAnchor.constraint(equalTo: super.view.bottomAnchor)
-        ])
+        collectionView.pinEdgesToSuperview()
+    }
+
+    private func setupCollectionView() {
+        collectionView.delegate = self
+        collectionView.dataSource = dataSource
+
+        cellRegistrar.setup()
+    }
+
+    private func makeDataSource() -> DataSource {
+        DataSource(collectionView: collectionView) { [cellRegistrar] collectionView, indexPath, item in
+            cellRegistrar.dequeueCell(for: item, collectionView: collectionView, indexPath: indexPath)
+        }
+    }
+
+    static func makeLayout() -> UICollectionViewLayout {
+        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(.itemEstimatedHeight))
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16)
+
+        let group = NSCollectionLayoutGroup.vertical(layoutSize: itemSize, subitems: [item])
+
+        let section = NSCollectionLayoutSection(group: group)
+        section.interGroupSpacing = 16
+
+        return UICollectionViewCompositionalLayout(section: section)
+    }
+}
+
+extension MainViewController: UICollectionViewDelegate {
+
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        collectionView.deselectItem(at: indexPath, animated: true)
     }
 }
