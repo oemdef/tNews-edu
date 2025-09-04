@@ -69,20 +69,29 @@ final class MainViewController: UIViewController, IMainView {
     private func setup() {
         view.backgroundColor = .systemBackground
 
-        title = "tNews"
-        navigationController?.navigationBar.prefersLargeTitles = true
-
-        let reloadBarAction = UIAction { [weak self] _ in
-            self?.presenter.viewDidAppear()
-        }
-        let reloadBarButton = UIBarButtonItem(systemItem: .refresh, primaryAction: reloadBarAction)
-        navigationItem.setRightBarButton(reloadBarButton, animated: false)
-
+        setupNavbar()
         setupHierarchy()
         setupConstraints()
         setupCollectionView()
     }
-    
+
+    private func setupNavbar() {
+        title = "tNews"
+        navigationController?.navigationBar.prefersLargeTitles = true
+
+        let reloadBarAction = UIAction { [weak self] _ in
+            self?.presenter.reloadItems()
+        }
+        let reloadBarButton = UIBarButtonItem(systemItem: .refresh, primaryAction: reloadBarAction)
+
+        let clearImageCacheBarAction = UIAction { [weak self] _ in
+            self?.presenter.clearImageCache()
+        }
+        let clearImageCacheButton = UIBarButtonItem(systemItem: .trash, primaryAction: clearImageCacheBarAction)
+
+        navigationItem.setRightBarButtonItems([reloadBarButton, clearImageCacheButton], animated: false)
+    }
+
     private func setupHierarchy() {
         view.addSubview(collectionView)
     }
@@ -94,6 +103,7 @@ final class MainViewController: UIViewController, IMainView {
     private func setupCollectionView() {
         collectionView.delegate = self
         collectionView.dataSource = dataSource
+        collectionView.prefetchDataSource = self
 
         cellRegistrar.setup()
     }
@@ -122,5 +132,15 @@ extension MainViewController: UICollectionViewDelegate {
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
+    }
+}
+
+extension MainViewController: UICollectionViewDataSourcePrefetching {
+    func collectionView(_ collectionView: UICollectionView, prefetchItemsAt indexPaths: [IndexPath]) {
+        // TODO: - Добавить prefetching когда отвяжу логику установки изображения в IImageResolver от загрузки
+    }
+
+    func collectionView(_ collectionView: UICollectionView, cancelPrefetchingForItemsAt indexPaths: [IndexPath]) {
+        // TODO: - Добавить prefetching когда отвяжу логику установки изображения в IImageResolver от загрузки
     }
 }

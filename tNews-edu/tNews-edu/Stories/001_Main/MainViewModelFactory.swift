@@ -18,13 +18,16 @@ protocol IMainViewModelFactory: AnyObject {
 
 final class MainViewModelFactory: IMainViewModelFactory {
 
+    private let imageResolverFactory: IImageResolverFactory
     private let publishedDateFormatter: IPublishedDateTimeFormatter
     private let currentDate: Date
 
     init(
+        imageResolverFactory: IImageResolverFactory,
         publishedDateFormatter: IPublishedDateTimeFormatter,
         currentDate: Date = Date()
     ) {
+        self.imageResolverFactory = imageResolverFactory
         self.publishedDateFormatter = publishedDateFormatter
         self.currentDate = currentDate
     }
@@ -36,13 +39,7 @@ final class MainViewModelFactory: IMainViewModelFactory {
     }
 
     func makeSkeletonItems() -> [MainItem] {
-        [
-            .skeleton(height: .defaultSkeletonHeight),
-            .skeleton(height: .defaultSkeletonHeight),
-            .skeleton(height: .defaultSkeletonHeight),
-            .skeleton(height: .defaultSkeletonHeight),
-            .skeleton(height: .defaultSkeletonHeight)
-        ]
+        .skeletonItems
     }
 
     private func makeViewModel(from article: Article) -> MainItemViewModel? {
@@ -58,9 +55,9 @@ final class MainViewModelFactory: IMainViewModelFactory {
         return MainItemViewModel(
             author: article.author ?? "Unknown author",
             title: title,
-            urlToImage: getUrlToImage(from: article.urlToImage),
             description: description,
             url: url,
+            image: getImage(from: article.urlToImage),
             publishedAt: publishedDateFormatter.string(
                 from: article.publishedAt,
                 currentDate: currentDate
@@ -80,9 +77,9 @@ final class MainViewModelFactory: IMainViewModelFactory {
         }
     }
 
-    private func getUrlToImage(from urlToImageString: String?) -> URL? {
+    private func getImage(from urlToImageString: String?) -> IImageResolver? {
         guard let urlToImageString else { return nil }
-        return URL(string: urlToImageString)
+        return imageResolverFactory.makeUrlResolver(fromUrlString: urlToImageString)
     }
 
     private func getSourceName(from source: Source?) -> String {
@@ -94,4 +91,14 @@ final class MainViewModelFactory: IMainViewModelFactory {
             return "Unknown source"
         }
     }
+}
+
+extension Array where Element == MainItem {
+    static let skeletonItems: [MainItem] = [
+        .skeleton(height: .defaultSkeletonHeight),
+        .skeleton(height: .defaultSkeletonHeight),
+        .skeleton(height: .defaultSkeletonHeight),
+        .skeleton(height: .defaultSkeletonHeight),
+        .skeleton(height: .defaultSkeletonHeight)
+    ]
 }

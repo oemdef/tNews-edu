@@ -20,8 +20,8 @@ final class ArticleCell: UICollectionViewCell {
         return cardView
     }()
 
-    private let imageView: UIImageView = {
-        let imageView = UIImageView()
+    private let imageView: ImageView = {
+        let imageView = ImageView()
         imageView.backgroundColor = .secondarySystemFill
         imageView.image = UIImage(systemName: "photo.fill")
         imageView.contentMode = .scaleAspectFit
@@ -91,6 +91,8 @@ final class ArticleCell: UICollectionViewCell {
         titleLabel.text = configuration.title
         authorLabel.text = configuration.author
         publishedAtLabel.text = configuration.publishedAt
+
+        imageView.apply(configuration.image)
     }
 
     // MARK: - Private
@@ -147,7 +149,6 @@ final class ArticleCell: UICollectionViewCell {
 
         NSLayoutConstraint.activate([
             authorLabel.trailingAnchor.constraint(equalTo: publishedAtLabel.leadingAnchor, constant: -16),
-            publishedAtLabel.leadingAnchor.constraint(equalTo: authorLabel.trailingAnchor, constant: 16)
         ])
 
         authorLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)

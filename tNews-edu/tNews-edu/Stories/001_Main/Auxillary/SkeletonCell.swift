@@ -7,6 +7,10 @@
 
 import UIKit
 
+private extension String {
+    static let skeletonAnimationKey = "skeletonAnimation"
+}
+
 final class SkeletonCell: UICollectionViewCell {
 
     private let skeleton = UIView()
@@ -41,5 +45,7 @@ final class SkeletonCell: UICollectionViewCell {
         skeleton.layer.cornerRadius = 24
         skeleton.layer.cornerCurve = .continuous
         skeleton.layer.masksToBounds = true
+
+        skeleton.layer.add(.endlessPulseAnimation, forKey: .skeletonAnimationKey)
     }
 }
