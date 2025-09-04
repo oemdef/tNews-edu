@@ -8,7 +8,7 @@
 import Foundation
 
 protocol ITopHeadlinesService: AnyObject {
-    func loadNew(completion: @escaping (Result<String, Error>) -> Void)
+    func loadNew(params: TopHeadlinesRequestParams, completion: @escaping (Result<TopHeadlinesResponse, Error>) -> Void)
 }
 
 final class TopHeadlinesService: ITopHeadlinesService {
@@ -19,15 +19,8 @@ final class TopHeadlinesService: ITopHeadlinesService {
         self.requestProcessor = requestProcessor
     }
 
-    func loadNew(completion: @escaping (Result<String, Error>) -> Void) {
-        let request = TopHeadlinesRequest(country: "us")
-        requestProcessor.load(request) { result in
-            switch result {
-            case .success(let articles):
-                completion(.success(articles))
-            case .failure:
-                completion(result)
-            }
-        }
+    func loadNew(params: TopHeadlinesRequestParams, completion: @escaping (Result<TopHeadlinesResponse, Error>) -> Void) {
+        let request = TopHeadlinesRequest(params: params)
+        return requestProcessor.load(request, completion: completion)
     }
 }

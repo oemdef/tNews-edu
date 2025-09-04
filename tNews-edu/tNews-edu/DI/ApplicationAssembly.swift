@@ -26,7 +26,8 @@ final class ApplicationAssembly: IApplicationAssembly {
             alertFactory: AlertFactory(),
             everythingService: EverythingService(requestProcessor: requestProcessor),
             topHeadlinesService: TopHeadlinesService(requestProcessor: requestProcessor),
-            apiKeyProvider: apiKeyProvider
+            apiKeyProvider: apiKeyProvider,
+            viewModelFactory: MainViewModelFactory(publishedDateFormatter: PublishedDateTimeFormatter())
         )
     }
 

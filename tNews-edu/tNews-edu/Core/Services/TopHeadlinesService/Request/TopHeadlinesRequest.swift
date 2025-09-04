@@ -9,14 +9,22 @@ import Foundation
 
 final class TopHeadlinesRequest: BaseRequest {
 
-    private let country: String
+    private let language: String
+    private let pageSize: Int
+    private let page: Int
 
-    init(country: String) {
-        self.country = country
+    init(params: TopHeadlinesRequestParams) {
+        self.language = params.language
+        self.pageSize = params.pageSize
+        self.page = params.page
     }
 
     override var queryParams: [AnyHashable : Any] {
-        ["country": country]
+        [
+            "language": language,
+            "pageSize": pageSize,
+            "page": page
+        ]
     }
 
     override var service: String {

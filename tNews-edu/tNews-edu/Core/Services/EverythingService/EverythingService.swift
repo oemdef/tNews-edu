@@ -20,14 +20,6 @@ final class EverythingService: IEverythingService {
     }
 
     func loadNew(completion: @escaping (Result<String, Error>) -> Void) {
-        let request = EverythingRequest()
-        requestProcessor.load(request) { result in
-            switch result {
-            case .success(let articles):
-                completion(.success(articles))
-            case .failure:
-                completion(result)
-            }
-        }
+        requestProcessor.load(EverythingRequest(), completion: completion)
     }
 }
