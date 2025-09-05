@@ -56,11 +56,7 @@ final class ImageLoader: IImageLoader {
             return
         }
 
-        var activeTask: URLSessionDownloadTask?
-
-        lock.withLock {
-            activeTask = downloadTasks[url]
-        }
+        let activeTask = lock.withLock { downloadTasks[url] }
 
         guard activeTask == nil else { return }
 
