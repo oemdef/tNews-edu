@@ -56,7 +56,13 @@ final class ImageLoader: IImageLoader {
             return
         }
 
-        guard downloadTasks[url] == nil else { return }
+        var activeTask: URLSessionDownloadTask?
+
+        lock.withLock {
+            activeTask = downloadTasks[url]
+        }
+
+        guard activeTask == nil else { return }
 
         createAndEnqueueTask(
             for: urlRequest,
@@ -77,8 +83,15 @@ final class ImageLoader: IImageLoader {
     }
 
     func cancelLoad(for urlRequest: URLRequest) {
-        guard let url = urlRequest.url,
-              let downloadTask = downloadTasks[url] else { return }
+        guard let url = urlRequest.url else { return }
+
+        var downloadTask: URLSessionDownloadTask?
+
+        lock.withLock {
+            downloadTask = downloadTasks[url]
+        }
+
+        guard let downloadTask else { return }
 
         downloadTask.cancel()
     }
