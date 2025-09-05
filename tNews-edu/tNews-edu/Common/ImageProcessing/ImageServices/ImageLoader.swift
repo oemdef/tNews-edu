@@ -24,6 +24,8 @@ final class ImageLoader: IImageLoader {
     private let imageLoadingQueue: DispatchQueue
     private let semaphore: DispatchSemaphore
 
+    private let lock: NSLock = NSLock()
+
     private var downloadTasks: [URL: URLSessionDownloadTask] = [:]
 
     init(
@@ -58,11 +60,15 @@ final class ImageLoader: IImageLoader {
 
         createAndEnqueueTask(
             for: urlRequest,
-            onEnqueue: { [weak self] downloadTask in
-                self?.downloadTasks[url] = downloadTask
+            onEnqueue: { [weak self, lock] downloadTask in
+                lock.withLock {
+                    self?.downloadTasks[url] = downloadTask
+                }
             },
-            completion: { [weak self] image in
-                self?.downloadTasks[url] = nil
+            completion: { [weak self, lock] image in
+                lock.withLock {
+                    self?.downloadTasks[url] = nil
+                }
                 DispatchQueue.main.async {
                     completion(image)
                 }
