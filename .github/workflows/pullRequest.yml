@@ -1,0 +1,26 @@
+name: Pull Request Workflow
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  pr_suite:
+    name: Build and Test on Pull Request
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      
+      - name: Install gems
+        run: bundle install
+
+      - name: Run Tests
+        run: bundle exec fastlane unit_test
