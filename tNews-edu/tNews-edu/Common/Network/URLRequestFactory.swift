@@ -9,6 +9,7 @@ import Foundation
 
 protocol IURLRequestFactory: AnyObject {
     func makeUrlRequest(from request: IRequest) -> URLRequest?
+    func makeImageUrlRequest(from imageUrlString: String) -> URLRequest?
 }
 
 final class URLRequestFactory: IURLRequestFactory {
@@ -36,6 +37,11 @@ final class URLRequestFactory: IURLRequestFactory {
         urlRequest.httpMethod = request.type.rawValue.uppercased()
 
         return urlRequest
+    }
+
+    func makeImageUrlRequest(from imageUrlString: String) -> URLRequest? {
+        guard let url = URL(string: imageUrlString) else { return nil }
+        return URLRequest(url: url)
     }
 
     private func queryItems(from queryParams: [AnyHashable: Any]) -> [URLQueryItem]? {

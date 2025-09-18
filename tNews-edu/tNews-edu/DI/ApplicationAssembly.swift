@@ -17,17 +17,25 @@ final class ApplicationAssembly: IApplicationAssembly {
 
     init() {
         let apiKeyProvider = APIKeyProvider(keychainManager: KeychainManager())
-        let requestProcessor = RequestProcessor(
-            urlRequestFactory: URLRequestFactory(
-                apiKeyProvider: apiKeyProvider
-            )
+        let urlRequestFactory = URLRequestFactory(apiKeyProvider: apiKeyProvider)
+        let requestProcessor = RequestProcessor(urlRequestFactory: urlRequestFactory)
+
+        let imageCacher = ImageCacher()
+        let imageResolverFactory = URLImageResolverFactory(
+            urlRequestFactory: urlRequestFactory,
+            imageLoader: ImageLoader(imageCacher: imageCacher)
         )
+
         self.entryPointAssembly = MainAssembly(
             alertFactory: AlertFactory(),
             everythingService: EverythingService(requestProcessor: requestProcessor),
             topHeadlinesService: TopHeadlinesService(requestProcessor: requestProcessor),
             apiKeyProvider: apiKeyProvider,
-            viewModelFactory: MainViewModelFactory(publishedDateFormatter: PublishedDateTimeFormatter())
+            viewModelFactory: MainViewModelFactory(
+                imageResolverFactory: imageResolverFactory,
+                publishedDateFormatter: PublishedDateTimeFormatter()
+            ),
+            imageCacher: imageCacher
         )
     }
 

@@ -9,6 +9,8 @@ import Foundation
 
 protocol IMainPresenter: AnyObject {
     func viewDidAppear()
+    func reloadItems()
+    func clearImageCache()
 }
 
 final class MainPresenter: IMainPresenter {
@@ -18,6 +20,7 @@ final class MainPresenter: IMainPresenter {
     private let topHeadlinesService: ITopHeadlinesService
     private let apiKeyProvider: IAPIKeyProvider
     private let viewModelFactory: IMainViewModelFactory
+    private let imageCacher: IImageCacher
 
     weak var view: IMainView?
 
@@ -26,16 +29,22 @@ final class MainPresenter: IMainPresenter {
         everythingService: IEverythingService,
         topHeadlinesService: ITopHeadlinesService,
         apiKeyProvider: IAPIKeyProvider,
-        viewModelFactory: IMainViewModelFactory
+        viewModelFactory: IMainViewModelFactory,
+        imageCacher: IImageCacher
     ) {
         self.router = router
         self.everythingService = everythingService
         self.topHeadlinesService = topHeadlinesService
         self.apiKeyProvider = apiKeyProvider
         self.viewModelFactory = viewModelFactory
+        self.imageCacher = imageCacher
     }
 
     func viewDidAppear() {
+        reloadItems()
+    }
+
+    func reloadItems() {
         guard apiKeyProvider.getApiKey() != nil else {
             let alertConfiguration = AlertConfiguration.enterApiKeyAlert { [weak self] apiKey in
                 self?.apiKeyProvider.save(apiKey: apiKey)
@@ -46,6 +55,10 @@ final class MainPresenter: IMainPresenter {
         }
 
         loadArticles()
+    }
+
+    func clearImageCache() {
+        imageCacher.clearCache()
     }
 
     private func loadArticles() {
