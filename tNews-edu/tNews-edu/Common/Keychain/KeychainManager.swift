@@ -22,7 +22,7 @@ final class KeychainManager: IKeychainManager {
             kSecValueData: data,
             kSecClass: kSecClassGenericPassword,
             kSecAttrService: service,
-            kSecAttrAccount: account,
+            kSecAttrAccount: account
         ] as CFDictionary
 
         let status = SecItemAdd(query, nil)
@@ -32,7 +32,7 @@ final class KeychainManager: IKeychainManager {
             let query = [
                 kSecAttrService: service,
                 kSecAttrAccount: account,
-                kSecClass: kSecClassGenericPassword,
+                kSecClass: kSecClassGenericPassword
             ] as CFDictionary
 
             let attributesToUpdate = [kSecValueData: data] as CFDictionary
@@ -61,7 +61,7 @@ final class KeychainManager: IKeychainManager {
         let query = [
             kSecAttrService: service,
             kSecAttrAccount: account,
-            kSecClass: kSecClassGenericPassword,
+            kSecClass: kSecClassGenericPassword
         ] as CFDictionary
 
         SecItemDelete(query)
@@ -70,7 +70,7 @@ final class KeychainManager: IKeychainManager {
 
 extension KeychainManager {
 
-    func save<T>(_ item: T, service: String, account: String) where T : Codable {
+    func save<T>(_ item: T, service: String, account: String) where T: Codable {
         do {
             let data = try JSONEncoder().encode(item)
             save(data, service: service, account: account)
@@ -79,7 +79,7 @@ extension KeychainManager {
         }
     }
 
-    func read<T>(service: String, account: String, type: T.Type) -> T? where T : Codable {
+    func read<T>(service: String, account: String, type: T.Type) -> T? where T: Codable {
         guard let data = read(service: service, account: account) else {
             return nil
         }

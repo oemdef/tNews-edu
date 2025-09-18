@@ -19,7 +19,7 @@ final class TopHeadlinesRequest: BaseRequest {
         self.page = params.page
     }
 
-    override var queryParams: [AnyHashable : Any] {
+    override var queryParams: [AnyHashable: Any] {
         [
             "language": language,
             "pageSize": pageSize,

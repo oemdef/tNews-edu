@@ -25,7 +25,7 @@ final class RequestProcessor: IRequestProcessor {
             return
         }
 
-        URLSession.shared.dataTask(with: urlRequest) { data, response, error in
+        URLSession.shared.dataTask(with: urlRequest) { data, _, error in
             if let error {
                 completion(.failure(error))
                 return
