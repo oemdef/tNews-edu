@@ -138,7 +138,7 @@ final class ArticleCell: UICollectionViewCell {
         NSLayoutConstraint.activate([
             authorLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
             authorLabel.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -8),
-            authorLabel.leadingAnchor.constraint(equalTo: imageView.trailingAnchor, constant: 16),
+            authorLabel.leadingAnchor.constraint(equalTo: imageView.trailingAnchor, constant: 16)
         ])
 
         NSLayoutConstraint.activate([
@@ -148,7 +148,7 @@ final class ArticleCell: UICollectionViewCell {
         ])
 
         NSLayoutConstraint.activate([
-            authorLabel.trailingAnchor.constraint(equalTo: publishedAtLabel.leadingAnchor, constant: -16),
+            authorLabel.trailingAnchor.constraint(equalTo: publishedAtLabel.leadingAnchor, constant: -16)
         ])
 
         authorLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)

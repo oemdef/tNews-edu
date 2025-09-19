@@ -104,7 +104,7 @@ final class ImageLoader: IImageLoader {
 
         imageLoadingQueue.async { [urlSession, semaphore, imageCacher] in
             // Create task
-            let task = urlSession.downloadTask(with: urlRequest) { [semaphore, imageCacher] tempFileUrl, response, error in
+            let task = urlSession.downloadTask(with: urlRequest) { [semaphore, imageCacher] tempFileUrl, _, error in
                 defer {
                     semaphore.signal()
                 }
