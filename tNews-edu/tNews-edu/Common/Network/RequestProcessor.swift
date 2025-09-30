@@ -37,7 +37,10 @@ final class RequestProcessor: IRequestProcessor {
             }
             
             do {
-                let model = try JSONDecoder().decode(Model.self, from: data)
+                let decoder = JSONDecoder()
+                decoder.dateDecodingStrategy = .iso8601
+
+                let model = try decoder.decode(Model.self, from: data)
                 completion(.success(model))
                 return
             } catch {

@@ -29,7 +29,7 @@ final class ImageCacher: IImageCacher {
             return nil
         }
 
-        let imageUrlInCache = imageCachesDirectory.appendingPathComponent("\(url.hashValue)")
+        let imageUrlInCache = imageCachesDirectory.appendingPathComponent("\(url.lastPathComponent)")
 
         guard let data = fileManager.contents(atPath: imageUrlInCache.path),
               let image = UIImage(data: data)
@@ -45,7 +45,7 @@ final class ImageCacher: IImageCacher {
             return
         }
 
-        let imageUrlInCache = imageCachesDirectory.appendingPathComponent("\(imageUrl.hashValue)")
+        let imageUrlInCache = imageCachesDirectory.appendingPathComponent("\(imageUrl.lastPathComponent)")
 
         do {
             try fileManager.moveItem(at: tempFileUrl, to: imageUrlInCache)
