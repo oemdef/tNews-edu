@@ -28,10 +28,6 @@ final class CoreDataStorage: IStorage {
         return container
     }()
 
-    private lazy var backgroundContext: NSManagedObjectContext = {
-        persistentContainer.newBackgroundContext()
-    }()
-
     init(requestFactory: FetchRequestFactory) {
         self.requestFactory = requestFactory
     }
@@ -40,15 +36,16 @@ final class CoreDataStorage: IStorage {
         _ modelType: Model.Type,
         sortDescriptors: [NSSortDescriptor]?
     ) -> [Model] {
+        let context = persistentContainer.newBackgroundContext()
         let fetchRequest = requestFactory.makeFetchRequest(
             for: modelType,
             sortDescriptors: sortDescriptors
         )
 
         var result: [Model] = []
-        backgroundContext.performAndWait {
+        context.performAndWait {
             do {
-                let fetched = try backgroundContext.fetch(fetchRequest)
+                let fetched = try context.fetch(fetchRequest)
                 result = try fetched.map(Model.from)
             } catch {
                 print("CoreDataStorage fetch error:", error)
@@ -58,20 +55,21 @@ final class CoreDataStorage: IStorage {
     }
 
     func replaceAll<Model: Persistable>(_ objects: [Model]) {
+        let context = persistentContainer.newBackgroundContext()
         let fetchRequest = requestFactory.makeFetchRequest(for: Model.self)
 
-        backgroundContext.performAndWait {
+        context.performAndWait {
             do {
-                let objects = try backgroundContext.fetch(fetchRequest)
-                objects.forEach { backgroundContext.delete($0) }
+                let objects = try context.fetch(fetchRequest)
+                objects.forEach { context.delete($0) }
             } catch {
                 print("CoreDataStorage remove error:", error)
             }
 
-            objects.forEach { $0.createDB(in: backgroundContext) }
+            objects.forEach { $0.createDB(in: context) }
 
             do {
-                try backgroundContext.save()
+                try context.save()
             } catch {
                 print("CoreDataStorage save error:", error)
             }

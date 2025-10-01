@@ -16,29 +16,37 @@ final class TopHeadlinesService: ITopHeadlinesService {
 
     private let storage: IStorage
     private let requestProcessor: IRequestProcessor
+    private let databaseQueue: DispatchQueue
 
     init(
         storage: IStorage,
-        requestProcessor: IRequestProcessor
+        requestProcessor: IRequestProcessor,
+        databaseQueue: DispatchQueue = DispatchQueue(label: "serial-database-queue")
     ) {
         self.storage = storage
         self.requestProcessor = requestProcessor
+        self.databaseQueue = databaseQueue
     }
 
     func fetchCached(completion: @escaping ([Article]) -> Void) {
         let sortByDateDesc = NSSortDescriptor(key: "publishedAt", ascending: false)
-        let cachedArticles = storage.fetch(Article.self, sortDescriptors: [sortByDateDesc])
-        completion(cachedArticles)
+
+        databaseQueue.async { [storage] in
+            let cachedArticles = storage.fetch(Article.self, sortDescriptors: [sortByDateDesc])
+            completion(cachedArticles)
+        }
     }
 
     func loadNew(params: TopHeadlinesRequestParams, completion: @escaping (Result<[Article], Error>) -> Void) {
         let request = TopHeadlinesRequest(params: params)
-        let loadCompletion: (Result<TopHeadlinesResponse, Error>) -> Void = { [storage] result in
+        let loadCompletion: (Result<TopHeadlinesResponse, Error>) -> Void = { [databaseQueue, storage] result in
             switch result {
             case .success(let response):
-                let articles: [Article] = response.articles ?? []
-                storage.replaceAll(articles)
-                completion(.success(articles))
+                databaseQueue.async {
+                    let articles: [Article] = response.articles ?? []
+                    storage.replaceAll(articles)
+                    completion(.success(articles))
+                }
             case .failure(let error):
                 completion(.failure(error))
             }
