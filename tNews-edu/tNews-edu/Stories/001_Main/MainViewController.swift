@@ -12,7 +12,9 @@ private extension CGFloat {
 }
 
 protocol IMainView: AnyObject {
+    var isRefreshing: Bool { get }
     func set(items: [MainItem], animated: Bool)
+    func endRefreshing()
 }
 
 private typealias DataSource = UICollectionViewDiffableDataSource<MainSection, MainItem>
@@ -27,6 +29,7 @@ final class MainViewController: UIViewController, IMainView {
     // MARK: - Private properties
 
     private let collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeLayout())
+    private let refreshControl = UIRefreshControl()
     private lazy var dataSource = makeDataSource()
     private let cellRegistrar = MainCellRegistrar()
 
@@ -57,11 +60,19 @@ final class MainViewController: UIViewController, IMainView {
     
     // MARK: - IMainView
 
+    var isRefreshing: Bool {
+        refreshControl.isRefreshing
+    }
+
     func set(items: [MainItem], animated: Bool) {
         var snapshot = Snapshot()
         snapshot.appendSections([.main])
         snapshot.appendItems(items, toSection: .main)
         dataSource.apply(snapshot, animatingDifferences: animated)
+    }
+
+    func endRefreshing() {
+        collectionView.refreshControl?.endRefreshing()
     }
 
     // MARK: - Private Helpers
@@ -79,17 +90,12 @@ final class MainViewController: UIViewController, IMainView {
         title = "tNews"
         navigationController?.navigationBar.prefersLargeTitles = true
 
-        let reloadBarAction = UIAction { [weak self] _ in
-            self?.presenter.reloadItems()
-        }
-        let reloadBarButton = UIBarButtonItem(systemItem: .refresh, primaryAction: reloadBarAction)
-
         let clearImageCacheBarAction = UIAction { [weak self] _ in
             self?.presenter.clearImageCache()
         }
         let clearImageCacheButton = UIBarButtonItem(systemItem: .trash, primaryAction: clearImageCacheBarAction)
 
-        navigationItem.setRightBarButtonItems([reloadBarButton, clearImageCacheButton], animated: false)
+        navigationItem.setRightBarButton(clearImageCacheButton, animated: false)
     }
 
     private func setupHierarchy() {
@@ -104,6 +110,12 @@ final class MainViewController: UIViewController, IMainView {
         collectionView.delegate = self
         collectionView.dataSource = dataSource
         collectionView.prefetchDataSource = self
+
+        let pullToRefreshAction = UIAction { [weak self] _ in
+            self?.presenter.reloadItems()
+        }
+        refreshControl.addAction(pullToRefreshAction, for: .valueChanged)
+        collectionView.refreshControl = refreshControl
 
         cellRegistrar.setup()
     }

@@ -62,28 +62,45 @@ final class MainPresenter: IMainPresenter {
     }
 
     private func loadArticles() {
-        showSkeletons(animated: false)
+        if view?.isRefreshing != true {
+            showSkeletons(animated: false)
+
+            topHeadlinesService.fetchCached { [weak self] cachedArticles in
+                if !cachedArticles.isEmpty,
+                   let viewModels = self?.viewModelFactory.makeViewModels(from: cachedArticles),
+                   !viewModels.isEmpty {
+
+                    let items = viewModels.map { MainItem.active(viewModel: $0) }
+
+                    DispatchQueue.main.async {
+                        self?.view?.set(items: items, animated: false)
+                    }
+                }
+            }
+        }
 
         let params = TopHeadlinesRequestParams(language: "en")
         topHeadlinesService.loadNew(params: params) { [weak self] result in
             switch result {
-            case .success(let response):
-                if let articles = response.articles,
-                   let viewModels = self?.viewModelFactory.makeViewModels(from: articles), !viewModels.isEmpty {
+            case .success(let articles):
+                if let viewModels = self?.viewModelFactory.makeViewModels(from: articles), !viewModels.isEmpty {
 
                     let items = viewModels.map { MainItem.active(viewModel: $0) }
 
                     DispatchQueue.main.async {
                         self?.view?.set(items: items, animated: true)
+                        self?.view?.endRefreshing()
                     }
                 } else {
                     DispatchQueue.main.async {
                         self?.router.presentAlert(with: .generic(title: "Произошла ошибка", message: "Error: No Articles"))
+                        self?.view?.endRefreshing()
                     }
                 }
             case .failure(let error):
                 DispatchQueue.main.async {
-                    self?.router.presentAlert(with: .generic(title: "Произошла ошибка", message: "\(error)"))
+                    self?.router.presentAlert(with: .generic(title: "Произошла ошибка", message: "\(error.localizedDescription)"))
+                    self?.view?.endRefreshing()
                 }
             }
         }
