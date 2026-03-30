@@ -8,49 +8,45 @@
 import Foundation
 
 protocol ITopHeadlinesService: AnyObject {
-    func fetchCached(completion: @escaping (([Article]) -> Void))
-    func loadNew(params: TopHeadlinesRequestParams, completion: @escaping (Result<[Article], Error>) -> Void)
+    func fetchCached() async -> [Article]
+    func loadNew(params: TopHeadlinesRequestParams) async throws -> [Article]
 }
 
 final class TopHeadlinesService: ITopHeadlinesService {
 
     private let storage: IStorage
     private let requestProcessor: IRequestProcessor
-    private let databaseQueue: DispatchQueue
 
     init(
         storage: IStorage,
-        requestProcessor: IRequestProcessor,
-        databaseQueue: DispatchQueue = DispatchQueue(label: "serial-database-queue")
+        requestProcessor: IRequestProcessor
     ) {
         self.storage = storage
         self.requestProcessor = requestProcessor
-        self.databaseQueue = databaseQueue
     }
 
-    func fetchCached(completion: @escaping ([Article]) -> Void) {
+    func fetchCached() async -> [Article] {
         let sortByDateDesc = NSSortDescriptor(key: "publishedAt", ascending: false)
 
-        databaseQueue.async { [storage] in
+        return await withCheckedContinuation { continuation in
             let cachedArticles = storage.fetch(Article.self, sortDescriptors: [sortByDateDesc])
-            completion(cachedArticles)
+            continuation.resume(returning: cachedArticles)
         }
     }
 
-    func loadNew(params: TopHeadlinesRequestParams, completion: @escaping (Result<[Article], Error>) -> Void) {
+    func loadNew(params: TopHeadlinesRequestParams) async throws -> [Article] {
         let request = TopHeadlinesRequest(params: params)
-        let loadCompletion: (Result<TopHeadlinesResponse, Error>) -> Void = { [databaseQueue, storage] result in
-            switch result {
-            case .success(let response):
-                databaseQueue.async {
-                    let articles: [Article] = response.articles ?? []
-                    storage.replaceAll(articles)
-                    completion(.success(articles))
-                }
-            case .failure(let error):
-                completion(.failure(error))
+
+        let response: TopHeadlinesResponse = try await requestProcessor.load(request)
+        let articles: [Article] = response.articles ?? []
+
+        Task.detached(priority: .utility) { [storage] in
+            await withCheckedContinuation { continuation in
+                storage.replaceAll(articles)
+                continuation.resume()
             }
         }
-        requestProcessor.load(request, completion: loadCompletion)
+
+        return articles
     }
 }
