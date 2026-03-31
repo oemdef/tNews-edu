@@ -8,7 +8,7 @@
 import Foundation
 
 protocol IEverythingService: AnyObject {
-    func loadNew(completion: @escaping (Result<String, Error>) -> Void)
+    func loadNew() async throws -> String
 }
 
 final class EverythingService: IEverythingService {
@@ -19,7 +19,7 @@ final class EverythingService: IEverythingService {
         self.requestProcessor = requestProcessor
     }
 
-    func loadNew(completion: @escaping (Result<String, Error>) -> Void) {
-        requestProcessor.load(EverythingRequest(), completion: completion)
+    func loadNew() async throws -> String {
+        try await requestProcessor.load(EverythingRequest())
     }
 }

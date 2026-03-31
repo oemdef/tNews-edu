@@ -8,6 +8,7 @@
 import UIKit
 
 protocol IMainRouter: AnyObject {
+    @MainActor
     func presentAlert(with configuration: AlertConfiguration)
 }
 

@@ -12,9 +12,12 @@ private extension CGFloat {
 }
 
 protocol IMainView: AnyObject {
+    @MainActor
     var isRefreshing: Bool { get }
-    func set(items: [MainItem], animated: Bool)
+    @MainActor
     func endRefreshing()
+
+    nonisolated func set(items: [MainItem], animated: Bool)
 }
 
 private typealias DataSource = UICollectionViewDiffableDataSource<MainSection, MainItem>
@@ -54,8 +57,10 @@ final class MainViewController: UIViewController, IMainView {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
-        presenter.viewDidAppear()
+
+        Task.detached { [presenter] in
+            await presenter.viewDidAppear()
+        }
     }
     
     // MARK: - IMainView
@@ -111,8 +116,10 @@ final class MainViewController: UIViewController, IMainView {
         collectionView.dataSource = dataSource
         collectionView.prefetchDataSource = self
 
-        let pullToRefreshAction = UIAction { [weak self] _ in
-            self?.presenter.reloadItems()
+        let pullToRefreshAction = UIAction { [presenter] _ in
+            Task.detached {
+                await presenter.reloadItems()
+            }
         }
         refreshControl.addAction(pullToRefreshAction, for: .valueChanged)
         collectionView.refreshControl = refreshControl

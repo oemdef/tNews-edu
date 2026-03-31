@@ -8,8 +8,8 @@
 import Foundation
 
 protocol IMainPresenter: AnyObject {
-    func viewDidAppear()
-    func reloadItems()
+    func viewDidAppear() async
+    func reloadItems() async
     func clearImageCache()
 }
 
@@ -40,69 +40,61 @@ final class MainPresenter: IMainPresenter {
         self.imageCacher = imageCacher
     }
 
-    func viewDidAppear() {
-        reloadItems()
+    func viewDidAppear() async {
+        await reloadItems()
     }
 
-    func reloadItems() {
+    func reloadItems() async {
         guard apiKeyProvider.getApiKey() != nil else {
             let alertConfiguration = AlertConfiguration.enterApiKeyAlert { [weak self] apiKey in
                 self?.apiKeyProvider.save(apiKey: apiKey)
-                self?.loadArticles()
+                Task.detached {
+                    await self?.loadArticles()
+                }
             }
-            router.presentAlert(with: alertConfiguration)
+            await router.presentAlert(with: alertConfiguration)
             return
         }
 
-        loadArticles()
+        await loadArticles()
     }
 
     func clearImageCache() {
         imageCacher.clearCache()
     }
 
-    private func loadArticles() {
-        if view?.isRefreshing != true {
+    private func loadArticles() async {
+        if await view?.isRefreshing != true {
             showSkeletons(animated: false)
 
-            topHeadlinesService.fetchCached { [weak self] cachedArticles in
-                if !cachedArticles.isEmpty,
-                   let viewModels = self?.viewModelFactory.makeViewModels(from: cachedArticles),
-                   !viewModels.isEmpty {
+            let cachedArticles = await topHeadlinesService.fetchCached()
+            let viewModels = viewModelFactory.makeViewModels(from: cachedArticles)
 
-                    let items = viewModels.map { MainItem.active(viewModel: $0) }
-
-                    DispatchQueue.main.async {
-                        self?.view?.set(items: items, animated: false)
-                    }
-                }
+            if !viewModels.isEmpty {
+                let items = viewModels.map { MainItem.active(viewModel: $0) }
+                view?.set(items: items, animated: false)
             }
         }
 
         let params = TopHeadlinesRequestParams(language: "en")
-        topHeadlinesService.loadNew(params: params) { [weak self] result in
-            switch result {
-            case .success(let articles):
-                if let viewModels = self?.viewModelFactory.makeViewModels(from: articles), !viewModels.isEmpty {
 
-                    let items = viewModels.map { MainItem.active(viewModel: $0) }
+        do {
+            let loadedArticles = try await topHeadlinesService.loadNew(params: params)
+            let viewModels = viewModelFactory.makeViewModels(from: loadedArticles)
 
-                    DispatchQueue.main.async {
-                        self?.view?.set(items: items, animated: true)
-                        self?.view?.endRefreshing()
-                    }
-                } else {
-                    DispatchQueue.main.async {
-                        self?.router.presentAlert(with: .generic(title: "Произошла ошибка", message: "Error: No Articles"))
-                        self?.view?.endRefreshing()
-                    }
-                }
-            case .failure(let error):
-                DispatchQueue.main.async {
-                    self?.router.presentAlert(with: .generic(title: "Произошла ошибка", message: "\(error.localizedDescription)"))
-                    self?.view?.endRefreshing()
-                }
+            guard !viewModels.isEmpty else {
+                await router.presentAlert(with: .generic(title: "Произошла ошибка", message: "Error: No Articles"))
+                await view?.endRefreshing()
+                return
             }
+
+            let items = viewModels.map { MainItem.active(viewModel: $0) }
+
+            view?.set(items: items, animated: true)
+            await view?.endRefreshing()
+        } catch {
+            await router.presentAlert(with: .generic(title: "Произошла ошибка", message: "\(error.localizedDescription)"))
+            await view?.endRefreshing()
         }
     }
 
