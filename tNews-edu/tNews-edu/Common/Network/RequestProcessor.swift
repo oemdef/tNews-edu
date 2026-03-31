@@ -24,27 +24,12 @@ final class RequestProcessor: IRequestProcessor {
             throw NetworkError.invalidUrl
         }
 
-        return try await withCheckedThrowingContinuation { continuation in
-            URLSession.shared.dataTask(with: urlRequest) { data, _, error in
-                if let error {
-                    continuation.resume(throwing: error)
-                }
+        let (data, _) = try await URLSession.shared.data(for: urlRequest)
 
-                guard let data else {
-                    continuation.resume(throwing: NetworkError.noData)
-                    return
-                }
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let model = try decoder.decode(Model.self, from: data)
 
-                do {
-                    let decoder = JSONDecoder()
-                    decoder.dateDecodingStrategy = .iso8601
-
-                    let model = try decoder.decode(Model.self, from: data)
-                    continuation.resume(returning: model)
-                } catch {
-                    continuation.resume(throwing: error)
-                }
-            }.resume()
-        }
+        return model
     }
 }
