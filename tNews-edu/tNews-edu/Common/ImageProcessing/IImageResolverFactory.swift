@@ -8,5 +8,6 @@
 import Foundation
 
 protocol IImageResolverFactory: AnyObject {
+    func makeAsyncUrlResolver(fromUrlString urlString: String) -> IImageResolver?
     func makeUrlResolver(fromUrlString urlString: String) -> IImageResolver?
 }

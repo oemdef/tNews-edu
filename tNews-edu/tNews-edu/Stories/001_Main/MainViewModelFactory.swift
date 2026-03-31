@@ -79,7 +79,7 @@ final class MainViewModelFactory: IMainViewModelFactory {
 
     private func getImage(from urlToImageString: String?) -> IImageResolver? {
         guard let urlToImageString else { return nil }
-        return imageResolverFactory.makeUrlResolver(fromUrlString: urlToImageString)
+        return imageResolverFactory.makeAsyncUrlResolver(fromUrlString: urlToImageString)
     }
 
     private func getSourceName(from source: Source?) -> String {

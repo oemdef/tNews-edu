@@ -52,7 +52,7 @@ final class MainPresenter: IMainPresenter {
                     await self?.loadArticles()
                 }
             }
-            router.presentAlert(with: alertConfiguration)
+            await router.presentAlert(with: alertConfiguration)
             return
         }
 
@@ -83,7 +83,7 @@ final class MainPresenter: IMainPresenter {
             let viewModels = viewModelFactory.makeViewModels(from: loadedArticles)
 
             guard !viewModels.isEmpty else {
-                router.presentAlert(with: .generic(title: "Произошла ошибка", message: "Error: No Articles"))
+                await router.presentAlert(with: .generic(title: "Произошла ошибка", message: "Error: No Articles"))
                 await view?.endRefreshing()
                 return
             }
@@ -93,7 +93,7 @@ final class MainPresenter: IMainPresenter {
             view?.set(items: items, animated: true)
             await view?.endRefreshing()
         } catch {
-            router.presentAlert(with: .generic(title: "Произошла ошибка", message: "\(error.localizedDescription)"))
+            await router.presentAlert(with: .generic(title: "Произошла ошибка", message: "\(error.localizedDescription)"))
             await view?.endRefreshing()
         }
     }

@@ -22,9 +22,11 @@ final class ApplicationAssembly: IApplicationAssembly {
         let requestProcessor = RequestProcessor(urlRequestFactory: urlRequestFactory)
 
         // Image Loading Dependencies
+        let asyncImageCacher = AsyncImageCacher()
         let imageCacher = ImageCacher()
         let imageResolverFactory = URLImageResolverFactory(
             urlRequestFactory: urlRequestFactory,
+            asyncImageLoader: AsyncImageLoader(imageCacher: asyncImageCacher),
             imageLoader: ImageLoader(imageCacher: imageCacher)
         )
 
